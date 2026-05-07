@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 .env
 hormuz_did_panel.xlsx
+hormuz_did_results.xlsx
+hormuz_poisson_results.xlsx
