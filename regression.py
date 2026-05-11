@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
 
 
@@ -67,3 +68,31 @@ def save_poisson_results(results):
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
 
     print("Saved hormuz_poisson_results.xlsx")
+
+
+def plot_did(results):
+    panel = pd.read_excel("hormuz_did_panel.xlsx")
+    panel["fitted"] = results.fittedvalues.values
+
+    normal = panel[panel["Shadow_dummy"] == 0].sort_values("Date")
+    shadow = panel[panel["Shadow_dummy"] == 1].sort_values("Date")
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    ax.plot(normal["Date"], normal["fitted"], color="black", linewidth=2, label="Normal fleet (fitted)")
+    ax.plot(shadow["Date"], shadow["fitted"], color="blue",  linewidth=2, label="Shadow fleet (fitted)")
+    ax.axvline(pd.Timestamp("2026-03-01"), color="red", linewidth=1.5, linestyle="--", label="Blockade (Mar 1)")
+
+    label_date = pd.Timestamp("2026-03-08")
+    ax.text(label_date, 14,  r"$\beta_1$ = -104.33 (-90.3%)",       color="black", fontsize=9, va="bottom")
+    ax.text(label_date, 3.5, r"$\beta_1 + \beta_3$ = -3.1 (-63.3%)", color="blue",  fontsize=9, va="bottom")
+
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Daily crossings (fitted)")
+    ax.set_title("Difference-in-Differences: Strait of Hormuz Crossings")
+    ax.legend()
+    fig.tight_layout()
+
+    fig.savefig("hormuz_did_plot.png", dpi=150)
+    plt.close(fig)
+    print("Saved hormuz_did_plot.png")
