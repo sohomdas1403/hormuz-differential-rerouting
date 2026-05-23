@@ -62,9 +62,16 @@ def save_poisson_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
+    irr = pd.DataFrame({
+        "IRR":             np.exp(results.params),
+        "95% CI Lower":    np.exp(results.conf_int()[0]),
+        "95% CI Upper":    np.exp(results.conf_int()[1]),
+    })
+
     with pd.ExcelWriter("hormuz_poisson_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
+        irr.to_excel(writer, sheet_name="IRR Table")
 
     print("Saved hormuz_poisson_results.xlsx")
 
@@ -95,9 +102,16 @@ def save_nb_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
+    irr = pd.DataFrame({
+        "IRR":          np.exp(results.params),
+        "95% CI Lower": np.exp(results.conf_int()[0]),
+        "95% CI Upper": np.exp(results.conf_int()[1]),
+    })
+
     with pd.ExcelWriter("hormuz_nb_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
+        irr.to_excel(writer, sheet_name="IRR Table")
 
     print("Saved hormuz_nb_results.xlsx")
 
