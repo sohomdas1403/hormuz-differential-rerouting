@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
 
 
+def _stars(pvalues):
+    return pvalues.map(lambda p: "***" if p < 0.01 else ("**" if p < 0.05 else ("*" if p < 0.1 else "")))
+
+
 def run_did():
     panel = pd.read_excel("hormuz_did_panel.xlsx")
 
@@ -20,6 +24,7 @@ def save_did_results(results):
         "Std. Error":   results.bse,
         "t-Statistic":  results.tvalues,
         "p-Value":      results.pvalues,
+        "":             _stars(results.pvalues),
         "95% CI Lower": results.conf_int()[0],
         "95% CI Upper": results.conf_int()[1],
     })
@@ -29,9 +34,12 @@ def save_did_results(results):
         "Value":  [results.rsquared, results.rsquared_adj, results.fvalue, results.f_pvalue, results.nobs],
     })
 
+    note = pd.DataFrame({"Note": ["*** p<0.01   ** p<0.05   * p<0.1"]})
+
     with pd.ExcelWriter("hormuz_did_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
+        note.to_excel(writer, sheet_name="Coefficients", startrow=len(table) + 3, index=False, header=False)
 
     print("Saved hormuz_did_results.xlsx")
 
@@ -48,12 +56,13 @@ def run_poisson():
 
 def save_poisson_results(results):
     table = pd.DataFrame({
-        "Coefficient":  results.params,
-        "Std. Error":   results.bse,
-        "z-Statistic":  results.tvalues,
-        "p-Value":      results.pvalues,
-        "95% CI Lower": results.conf_int()[0],
-        "95% CI Upper": results.conf_int()[1],
+        "Coefficient":     results.params,
+        "Std. Error":      results.bse,
+        "z-Statistic":     results.tvalues,
+        "p-Value":         results.pvalues,
+        "":                _stars(results.pvalues),
+        "95% CI Lower":    results.conf_int()[0],
+        "95% CI Upper":    results.conf_int()[1],
         "IRR (exp(coef))": np.exp(results.params),
     })
 
@@ -62,9 +71,21 @@ def save_poisson_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
+    irr = pd.DataFrame({
+        "IRR":          np.exp(results.params),
+        "95% CI Lower": np.exp(results.conf_int()[0]),
+        "95% CI Upper": np.exp(results.conf_int()[1]),
+        "":             _stars(results.pvalues),
+    })
+
+    note = pd.DataFrame({"Note": ["*** p<0.01   ** p<0.05   * p<0.1"]})
+
     with pd.ExcelWriter("hormuz_poisson_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
+        irr.to_excel(writer, sheet_name="IRR Table")
+        note.to_excel(writer, sheet_name="Coefficients", startrow=len(table) + 3, index=False, header=False)
+        note.to_excel(writer, sheet_name="IRR Table",    startrow=len(irr) + 3,   index=False, header=False)
 
     print("Saved hormuz_poisson_results.xlsx")
 
@@ -85,6 +106,7 @@ def save_nb_results(results):
         "Std. Error":      results.bse,
         "z-Statistic":     results.tvalues,
         "p-Value":         results.pvalues,
+        "":                _stars(results.pvalues),
         "95% CI Lower":    results.conf_int()[0],
         "95% CI Upper":    results.conf_int()[1],
         "IRR (exp(coef))": np.exp(results.params),
@@ -95,9 +117,21 @@ def save_nb_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
+    irr = pd.DataFrame({
+        "IRR":          np.exp(results.params),
+        "95% CI Lower": np.exp(results.conf_int()[0]),
+        "95% CI Upper": np.exp(results.conf_int()[1]),
+        "":             _stars(results.pvalues),
+    })
+
+    note = pd.DataFrame({"Note": ["*** p<0.01   ** p<0.05   * p<0.1"]})
+
     with pd.ExcelWriter("hormuz_nb_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
+        irr.to_excel(writer, sheet_name="IRR Table")
+        note.to_excel(writer, sheet_name="Coefficients", startrow=len(table) + 3, index=False, header=False)
+        note.to_excel(writer, sheet_name="IRR Table",    startrow=len(irr) + 3,   index=False, header=False)
 
     print("Saved hormuz_nb_results.xlsx")
 
