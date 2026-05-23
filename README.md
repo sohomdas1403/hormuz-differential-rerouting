@@ -20,4 +20,4 @@ python main.py
 ## Requirements
 - Python 3.10.11
 - venv
-- pandas, openpyxl, statsmodels
+- numpy, pandas, openpyxl, matplotlib, statsmodels

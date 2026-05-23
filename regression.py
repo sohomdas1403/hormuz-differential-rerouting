@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
@@ -46,8 +47,6 @@ def run_poisson():
 
 
 def save_poisson_results(results):
-    import numpy as np
-
     table = pd.DataFrame({
         "Coefficient":  results.params,
         "Std. Error":   results.bse,
@@ -68,6 +67,39 @@ def save_poisson_results(results):
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
 
     print("Saved hormuz_poisson_results.xlsx")
+
+
+def run_nb():
+    panel = pd.read_excel("hormuz_did_panel.xlsx")
+
+    model = smf.negativebinomial("crossings ~ Post + Shadow_dummy + Post_X_Shadow", data=panel)
+    results = model.fit()
+
+    print(results.summary())
+    return results
+
+
+def save_nb_results(results):
+    table = pd.DataFrame({
+        "Coefficient":     results.params,
+        "Std. Error":      results.bse,
+        "z-Statistic":     results.tvalues,
+        "p-Value":         results.pvalues,
+        "95% CI Lower":    results.conf_int()[0],
+        "95% CI Upper":    results.conf_int()[1],
+        "IRR (exp(coef))": np.exp(results.params),
+    })
+
+    summary = pd.DataFrame({
+        "Metric": ["Log-Likelihood", "Pseudo R-squared", "LLR p-value", "No. Observations"],
+        "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
+    })
+
+    with pd.ExcelWriter("hormuz_nb_results.xlsx", engine="openpyxl") as writer:
+        table.to_excel(writer, sheet_name="Coefficients")
+        summary.to_excel(writer, sheet_name="Model Summary", index=False)
+
+    print("Saved hormuz_nb_results.xlsx")
 
 
 def plot_did(results):

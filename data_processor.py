@@ -25,3 +25,24 @@ def build_panel():
 
     panel.to_excel("hormuz_did_panel.xlsx", index=False)
     print(f"Saved hormuz_did_panel.xlsx — {len(panel)} rows, {panel['Date'].nunique()} dates")
+
+
+def build_summary_table():
+    panel = pd.read_excel("hormuz_did_panel.xlsx")
+
+    groups = {
+        "Normal fleet — Pre":  (panel["Shadow_dummy"] == 0) & (panel["Post"] == 0),
+        "Normal fleet — Post": (panel["Shadow_dummy"] == 0) & (panel["Post"] == 1),
+        "Shadow fleet — Pre":  (panel["Shadow_dummy"] == 1) & (panel["Post"] == 0),
+        "Shadow fleet — Post": (panel["Shadow_dummy"] == 1) & (panel["Post"] == 1),
+    }
+
+    rows = []
+    for label, mask in groups.items():
+        mean = panel.loc[mask, "crossings"].mean()
+        var  = panel.loc[mask, "crossings"].var()
+        rows.append({"Group": label, "Mean": mean, "Variance": var, "Ratio (Var / Mean)": var / mean})
+
+    table = pd.DataFrame(rows)
+    table.to_excel("hormuz_summary_table.xlsx", index=False)
+    print("Saved hormuz_summary_table.xlsx")
