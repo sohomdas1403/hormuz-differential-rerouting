@@ -71,21 +71,12 @@ def save_poisson_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
-    irr = pd.DataFrame({
-        "IRR":          np.exp(results.params),
-        "95% CI Lower": np.exp(results.conf_int()[0]),
-        "95% CI Upper": np.exp(results.conf_int()[1]),
-        "":             _stars(results.pvalues),
-    })
-
     note = pd.DataFrame({"Note": ["*** p<0.01   ** p<0.05   * p<0.1"]})
 
     with pd.ExcelWriter("hormuz_poisson_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
-        irr.to_excel(writer, sheet_name="IRR Table")
         note.to_excel(writer, sheet_name="Coefficients", startrow=len(table) + 3, index=False, header=False)
-        note.to_excel(writer, sheet_name="IRR Table",    startrow=len(irr) + 3,   index=False, header=False)
 
     print("Saved hormuz_poisson_results.xlsx")
 
@@ -109,7 +100,7 @@ def save_nb_results(results):
         "":                _stars(results.pvalues),
         "95% CI Lower":    results.conf_int()[0],
         "95% CI Upper":    results.conf_int()[1],
-        "IRR (exp(coef))": np.exp(results.params),
+        "IRR (exp(coef))": np.where(results.params.index == "alpha", "—", np.exp(results.params)),
     })
 
     summary = pd.DataFrame({
@@ -117,23 +108,89 @@ def save_nb_results(results):
         "Value":  [results.llf, results.prsquared, results.llr_pvalue, results.nobs],
     })
 
-    irr = pd.DataFrame({
-        "IRR":          np.exp(results.params),
-        "95% CI Lower": np.exp(results.conf_int()[0]),
-        "95% CI Upper": np.exp(results.conf_int()[1]),
-        "":             _stars(results.pvalues),
-    })
-
     note = pd.DataFrame({"Note": ["*** p<0.01   ** p<0.05   * p<0.1"]})
 
     with pd.ExcelWriter("hormuz_nb_results.xlsx", engine="openpyxl") as writer:
         table.to_excel(writer, sheet_name="Coefficients")
         summary.to_excel(writer, sheet_name="Model Summary", index=False)
-        irr.to_excel(writer, sheet_name="IRR Table")
         note.to_excel(writer, sheet_name="Coefficients", startrow=len(table) + 3, index=False, header=False)
-        note.to_excel(writer, sheet_name="IRR Table",    startrow=len(irr) + 3,   index=False, header=False)
 
     print("Saved hormuz_nb_results.xlsx")
+
+
+def save_combined_results(did, poisson, nb):
+    em = "—"
+
+    def stars(pval):
+        return "***" if pval < 0.01 else ("**" if pval < 0.05 else ("*" if pval < 0.1 else ""))
+
+    def fmt(val, pval):
+        return f"{val:.4f}{stars(pval)}"
+
+    def fmt_se(val):
+        return f"({val:.4f})"
+
+    def fmt_irr(results, param):
+        return f"{np.exp(results.params[param]):.4f}{stars(results.pvalues[param])}"
+
+    rows = []
+
+    def coef_rows(label, param, did_r=did, poi_r=poisson, nb_r=nb):
+        rows.append({
+            "": label,
+            "DiD (OLS)":        fmt(did_r.params[param],    did_r.pvalues[param]),
+            "Poisson":          fmt(poi_r.params[param],    poi_r.pvalues[param]),
+            "Negative Binomial": fmt(nb_r.params[param],   nb_r.pvalues[param]),
+        })
+        rows.append({
+            "": "",
+            "DiD (OLS)":        fmt_se(did_r.bse[param]),
+            "Poisson":          fmt_se(poi_r.bse[param]),
+            "Negative Binomial": fmt_se(nb_r.bse[param]),
+        })
+
+    def irr_row(label, param):
+        rows.append({
+            "": label,
+            "DiD (OLS)":        em,
+            "Poisson":          fmt_irr(poisson, param),
+            "Negative Binomial": fmt_irr(nb, param),
+        })
+
+    coef_rows("Intercept",    "Intercept")
+    irr_row("IRR(Intercept)", "Intercept")
+    coef_rows("Post",         "Post")
+    irr_row("IRR(Post)",      "Post")
+    coef_rows("Shadow",       "Shadow_dummy")
+    irr_row("IRR(Shadow)",    "Shadow_dummy")
+    coef_rows("Post x Shadow","Post_X_Shadow")
+    irr_row("IRR(Post x Shadow)", "Post_X_Shadow")
+
+    rows.append({
+        "": "Dispersion (alpha)",
+        "DiD (OLS)":        em,
+        "Poisson":          em,
+        "Negative Binomial": fmt(nb.params["alpha"], nb.pvalues["alpha"]),
+    })
+    rows.append({
+        "": "",
+        "DiD (OLS)":        em,
+        "Poisson":          em,
+        "Negative Binomial": fmt_se(nb.bse["alpha"]),
+    })
+
+    rows.append({"": "N",         "DiD (OLS)": int(did.nobs),         "Poisson": int(poisson.nobs),      "Negative Binomial": int(nb.nobs)})
+    rows.append({"": "R²",        "DiD (OLS)": f"{did.rsquared:.4f}", "Poisson": em,                     "Negative Binomial": em})
+    rows.append({"": "Pseudo R²", "DiD (OLS)": em,                    "Poisson": f"{poisson.prsquared:.4f}", "Negative Binomial": f"{nb.prsquared:.4f}"})
+
+    table = pd.DataFrame(rows)
+
+    with pd.ExcelWriter("hormuz_combined_results.xlsx", engine="openpyxl") as writer:
+        table.to_excel(writer, sheet_name="Combined Results", index=False)
+        note_row = len(table) + 2
+        writer.sheets["Combined Results"].cell(row=note_row + 1, column=1, value="*** p<0.01   ** p<0.05   * p<0.1")
+
+    print("Saved hormuz_combined_results.xlsx")
 
 
 def plot_did(results):
