@@ -4,9 +4,13 @@ import matplotlib.pyplot as plt
 import statsmodels.formula.api as smf
 
 
+# Assign significance stars to p-values (*** / ** / * / blank).
+
 def _stars(pvalues):
     return pvalues.map(lambda p: "***" if p < 0.01 else ("**" if p < 0.05 else ("*" if p < 0.1 else "")))
 
+
+# Runs the OLS difference-in-differences regression
 
 def run_did():
     panel = pd.read_excel("hormuz_did_panel.xlsx")
@@ -17,6 +21,8 @@ def run_did():
     print(results.summary())
     return results
 
+
+# Saves OLS DiD coefficients, model summary, and significance stars to hormuz_did_results.xlsx.
 
 def save_did_results(results):
     table = pd.DataFrame({
@@ -44,6 +50,8 @@ def save_did_results(results):
     print("Saved hormuz_did_results.xlsx")
 
 
+# Runs Poisson regression specification
+
 def run_poisson():
     panel = pd.read_excel("hormuz_did_panel.xlsx")
 
@@ -53,6 +61,8 @@ def run_poisson():
     print(results.summary())
     return results
 
+
+# Saves Poisson coefficients, IRRs, model summary, and significance stars to hormuz_poisson_results.xlsx.
 
 def save_poisson_results(results):
     table = pd.DataFrame({
@@ -81,6 +91,7 @@ def save_poisson_results(results):
     print("Saved hormuz_poisson_results.xlsx")
 
 
+# Runs a Negative Binomial (NB) regression specification.
 def run_nb():
     panel = pd.read_excel("hormuz_did_panel.xlsx")
 
@@ -90,6 +101,8 @@ def run_nb():
     print(results.summary())
     return results
 
+
+# Saves NB coefficients, IRRs, dispersion parameter, model summary, and stars to hormuz_nb_results.xlsx.
 
 def save_nb_results(results):
     table = pd.DataFrame({
@@ -117,6 +130,9 @@ def save_nb_results(results):
 
     print("Saved hormuz_nb_results.xlsx")
 
+
+# Builds a single side-by-side table of coefficients, SEs, IRRs, and model stats across all three
+# regression specifications and saves it to hormuz_combined_results.xlsx.
 
 def save_combined_results(did, poisson, nb):
     em = "—"
@@ -192,6 +208,9 @@ def save_combined_results(did, poisson, nb):
 
     print("Saved hormuz_combined_results.xlsx")
 
+
+# Plots OLS fitted values for normal and shadow fleets over time with a vertical line at the March 1 blockade,
+# and saves the figure to hormuz_did_plot.png.
 
 def plot_did(results):
     panel = pd.read_excel("hormuz_did_panel.xlsx")

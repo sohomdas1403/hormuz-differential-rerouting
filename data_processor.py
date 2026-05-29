@@ -1,6 +1,9 @@
 import pandas as pd
 
 
+# Reads the raw vessel data, aggregates daily crossings by fleet type (shadow vs normal),
+# adds Post dummy and interaction term, and saves the balanced panel to hormuz_did_panel.xlsx.
+
 def build_panel():
     df = pd.read_excel("Vessels passing Hormuz Strait EDITED with shadow.xlsx")
 
@@ -26,6 +29,9 @@ def build_panel():
     panel.to_excel("hormuz_did_panel.xlsx", index=False)
     print(f"Saved hormuz_did_panel.xlsx — {len(panel)} rows, {panel['Date'].nunique()} dates")
 
+
+# Computes mean, variance, and variance-to-mean ratio for daily crossings across four groups
+# (normal/shadow fleet × pre/post), and saves the table to hormuz_summary_table.xlsx.
 
 def build_summary_table():
     panel = pd.read_excel("hormuz_did_panel.xlsx")
