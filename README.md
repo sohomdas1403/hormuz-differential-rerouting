@@ -37,4 +37,4 @@ Entry point. Calls each function from `data_processor.py` and `regression.py` in
 
 
 ## Environmental Analysis:
-For the environmental proxy calculation, the data was treated through Excel. In the first page of the excel file called "Environmental Analysis.xlsx" you will find the table with all the relevant information used in the project. From this data is possible to recover all the statistics presented in the report.
+For the environmental proxy calculation, the data was treated through Excel. In the excel file called "Environmental Analysis.xlsx" you will find all the relevant information used in the project. From this data is possible to recover all the statistics presented in the report. Further details are provided in the first sheet of the excel file called "Overview". 
