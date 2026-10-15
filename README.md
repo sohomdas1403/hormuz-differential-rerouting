@@ -38,3 +38,8 @@ Entry point. Calls each function from `data_processor.py` and `regression.py` in
 
 ## Environmental Analysis:
 For the environmental proxy calculation, the data was treated through Excel. In the excel file called "Environmental Analysis.xlsx" you will find all the relevant information used in the project. From this data is possible to recover all the statistics presented in the report. Further details are provided in the first sheet of the excel file called "Overview". 
+
+## Attribution:
+Group project for "Environmental Economics" course at the University of Lausanne, with Jules David, Tomas Delgado Ayala, Azizbek Makhmudjonov, and Eduardo Beltrao. "Environmental Analysis.xlsx" analysis was done mainly by Tomas Delgado Ayala. All python coding was done by the owner of the repository, Sohom Das. 
+
+Grade Received: 6/6
